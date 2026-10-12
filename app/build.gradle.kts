@@ -12,7 +12,6 @@ android {
 
     defaultConfig {
         applicationId = "com.wavymusic.app"
-
         minSdk = 26
         targetSdk = 36
 
@@ -46,7 +45,6 @@ kotlin {
 dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
 
-    // Keep Compose libraries aligned using Google's stable BOM.
     implementation(
         platform("androidx.compose:compose-bom:2025.12.00")
     )
@@ -54,6 +52,12 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("androidx.navigation:navigation-compose:2.9.8")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 

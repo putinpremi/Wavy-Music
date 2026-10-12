@@ -19,7 +19,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -45,11 +46,16 @@ kotlin {
 dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
 
-    implementation("androidx.compose.ui:ui:1.12.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.12.1")
-    implementation("androidx.compose.material3:material3:1.4.0")
+    // Keep Compose libraries aligned using Google's stable BOM.
+    implementation(
+        platform("androidx.compose:compose-bom:2025.12.00")
+    )
 
-    debugImplementation("androidx.compose.ui:ui-tooling:1.12.1")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     testImplementation("junit:junit:4.13.2")
 }

@@ -3,23 +3,22 @@ package com.wavymusic.app.playback
 import java.util.UUID
 
 sealed interface PlaybackSource {
+    val uri: String
 
     /**
-     * An HTTPS stream URL.
-     *
-     * The track ID remains independent from this URL because stream URLs
-     * may expire or be refreshed by an authorized source resolver.
+     * Authorized remote stream.
+     * The URL may expire, so it is not a permanent track identity.
      */
     data class Https(
-        val uri: String,
+        override val uri: String,
         val expiresAtEpochMs: Long? = null
     ) : PlaybackSource
 
     /**
-     * A local Android content URI or file URI.
+     * Local Android content URI or file URI.
      */
     data class Local(
-        val uri: String
+        override val uri: String
     ) : PlaybackSource
 }
 
@@ -31,8 +30,8 @@ data class PlaybackTrack(
     val album: String? = null,
 
     /**
-     * Distinguishes queue entries even when the same track is
-     * added more than once.
+     * Unique identity for this occurrence in the queue,
+     * even when the same track is added more than once.
      */
     val queueItemId: String = UUID.randomUUID().toString()
 )

@@ -16,11 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.verticalScroll
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +41,10 @@ internal object WavyBrand {
     const val TAGLINE = "Feel every frequency."
     const val APPLICATION_ID = "com.wavymusic.app"
 
-    const val BACKGROUND_ARGB: Long = 0xFF080D19
-    const val SURFACE_ARGB: Long = 0xFF172235
-    const val CYAN_ARGB: Long = 0xFF48E5FF
-    const val VIOLET_ARGB: Long = 0xFF9272FF
+    const val BACKGROUND_ARGB: Long = 0xFF080D19L
+    const val SURFACE_ARGB: Long = 0xFF172235L
+    const val CYAN_ARGB: Long = 0xFF48E5FFL
+    const val VIOLET_ARGB: Long = 0xFF9272FFL
 }
 
 class MainActivity : ComponentActivity() {
@@ -62,10 +62,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun WavyMusicApp() {
-    val background = Color(WavyBrand.BACKGROUND_ARGB)
-    val surface = Color(WavyBrand.SURFACE_ARGB)
-    val cyan = Color(WavyBrand.CYAN_ARGB)
-    val violet = Color(WavyBrand.VIOLET_ARGB)
+    val background = Color(WavyBrand.BACKGROUND_ARGB.toInt())
+    val surface = Color(WavyBrand.SURFACE_ARGB.toInt())
+    val cyan = Color(WavyBrand.CYAN_ARGB.toInt())
+    val violet = Color(WavyBrand.VIOLET_ARGB.toInt())
 
     val colors = darkColorScheme(
         primary = cyan,
@@ -76,9 +76,7 @@ private fun WavyMusicApp() {
         onSurface = Color.White
     )
 
-    MaterialTheme(
-        colorScheme = colors
-    ) {
+    MaterialTheme(colorScheme = colors) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = background

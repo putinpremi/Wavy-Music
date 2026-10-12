@@ -1,0 +1,8 @@
+# Unit tests for the app's debug variant
+:app:testDebugUnitTest
+
+# Android lint for the debug variant
+:app:lintDebug
+
+# Package the debug APK
+:app:assembleDebug

@@ -1,0 +1,6 @@
+# Android platform required by compileSdk = 36
+platform-tools
+platforms;android-36
+
+# AGP 8.13.x default Build Tools version
+build-tools;35.0.0

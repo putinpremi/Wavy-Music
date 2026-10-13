@@ -3,6 +3,8 @@ package com.wavymusic.app.catalog
 
 import android.content.Context
 import com.wavymusic.app.catalog.provider.MusicCatalogProvider
+import com.wavymusic.app.catalog.provider.deezer.DeezerCatalogProvider
+import com.wavymusic.app.catalog.provider.deezer.HttpDeezerCatalogTransport
 import com.wavymusic.app.catalog.provider.itunes.HttpITunesCatalogTransport
 import com.wavymusic.app.catalog.provider.itunes.ITunesCatalogProvider
 import com.wavymusic.app.catalog.storage.WavyCatalogDatabase
@@ -10,8 +12,8 @@ import com.wavymusic.app.catalog.storage.WavyCatalogDatabase
 /**
  * Application-level access point for catalog search.
  *
- * The registered provider returns catalog metadata only. Search results
- * do not automatically become playable sources.
+ * Both providers return catalog metadata. Search results do not
+ * automatically become playable sources.
  */
 object CatalogGraph {
 
@@ -32,6 +34,9 @@ object CatalogGraph {
         val registeredProviders: List<MusicCatalogProvider> = listOf(
             ITunesCatalogProvider(
                 transport = HttpITunesCatalogTransport()
+            ),
+            DeezerCatalogProvider(
+                transport = HttpDeezerCatalogTransport()
             )
         )
 

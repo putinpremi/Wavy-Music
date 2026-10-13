@@ -321,6 +321,12 @@ private fun CatalogResultCard(
     val canOpenDetails =
         hit.itemType == CatalogSearchItemType.ARTIST ||
             hit.itemType == CatalogSearchItemType.ALBUM
+    
+    val sourceLabel = when (hit.providerId) {
+        "itunes-search" -> "Apple iTunes"
+        "deezer-public" -> "Deezer"
+        else -> hit.providerId
+    }
 
     Card(
         modifier = Modifier
@@ -371,6 +377,14 @@ private fun CatalogResultCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                Text(
+                    text = "Source · $sourceLabel",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = WavyColors.SecondaryText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Text(
                     text = when (hit.itemType) {

@@ -143,12 +143,14 @@ class InnerTubeCatalogParser(
 
         val artistsColumn = flexColumnText(renderer, 1).orEmpty()
         val artistLinks = findArtistLinks(renderer)
+
         val artistNames = artistLinks.map { it.second }
             .distinctBy { it.lowercase() }
             .ifEmpty { fallbackNames(artistsColumn) }
 
         val releaseColumn = flexColumnText(renderer, 2).orEmpty()
         val releaseSegments = splitMetadata(releaseColumn)
+
         val releaseYear = YEAR_REGEX.find(releaseColumn)
             ?.value
             ?.toIntOrNull()
@@ -221,6 +223,7 @@ class InnerTubeCatalogParser(
 
         val artistLinks = findArtistLinks(renderer)
         val artwork = extractArtwork(renderer)
+
         val identity = ProviderItemId(
             providerId = providerId,
             itemId = browseId
@@ -240,6 +243,7 @@ class InnerTubeCatalogParser(
 
             CatalogSearchType.ALBUMS -> {
                 val segments = splitMetadata(subtitle.orEmpty())
+
                 val year = YEAR_REGEX.find(subtitle.orEmpty())
                     ?.value
                     ?.toIntOrNull()
@@ -293,14 +297,24 @@ class InnerTubeCatalogParser(
         val page = pageType.uppercase()
 
         return when {
-            page.contains("ARTIST") -> CatalogSearchType.ARTISTS
-            page.contains("ALBUM") -> CatalogSearchType.ALBUMS
-            page.contains("PLAYLIST") -> CatalogSearchType.PUBLIC_PLAYLISTS
-            browseId.startsWith("UC") -> CatalogSearchType.ARTISTS
-            browseId.startsWith("MPRE") -> CatalogSearchType.ALBUMS
-            browseId.startsWith("VLPL") ||
-                browseId.startsWith("PL") ->
+            page.contains("ARTIST") ->
+                CatalogSearchType.ARTISTS
+
+            page.contains("ALBUM") ->
+                CatalogSearchType.ALBUMS
+
+            page.contains("PLAYLIST") ->
                 CatalogSearchType.PUBLIC_PLAYLISTS
+
+            browseId.startsWith("UC") ->
+                CatalogSearchType.ARTISTS
+
+            browseId.startsWith("MPRE") ->
+                CatalogSearchType.ALBUMS
+
+            browseId.startsWith("VLPL") || browseId.startsWith("PL") ->
+                CatalogSearchType.PUBLIC_PLAYLISTS
+
             else -> null
         }
     }
@@ -317,6 +331,7 @@ class InnerTubeCatalogParser(
         if (index !in 0 until columns.length()) return null
 
         val column = columns.optJSONObject(index) ?: return null
+
         val flex = column.optJSONObject(
             "musicResponsiveListItemFlexColumnRenderer"
         ) ?: return null
@@ -332,6 +347,7 @@ class InnerTubeCatalogParser(
         if (!simpleText.isNullOrBlank()) return simpleText.trim()
 
         val runs = value.optJSONArray("runs") ?: return ""
+
         return buildString {
             for (index in 0 until runs.length()) {
                 val run = runs.optJSONObject(index) ?: continue
@@ -340,18 +356,23 @@ class InnerTubeCatalogParser(
         }.replace(WHITESPACE_REGEX, " ").trim()
     }
 
-    private fun findArtistLinks(value: Any?): List<Pair<String, String>> {
-        val results = linkedMapOf<String, String>()
+    private fun findArtistLinks(
+        value: Any?
+    ): List<Pair<String, String>> {
+        // FIX: the map's values are artist identity/name pairs, not Strings.
+        val results = linkedMapOf<String, Pair<String, String>>()
 
         fun visit(node: Any?) {
             when (node) {
                 is JSONObject -> {
                     val text = node.stringValue("text").orEmpty().trim()
+
                     val endpoint = node.optJSONObject("navigationEndpoint")
                         ?.optJSONObject("browseEndpoint")
 
                     if (text.isNotBlank() && endpoint != null) {
                         val browseId = endpoint.stringValue("browseId")
+
                         val pageType = endpoint
                             .optJSONObject("browseEndpointContextSupportedConfigs")
                             ?.optJSONObject("browseEndpointContextMusicConfig")
@@ -389,13 +410,16 @@ class InnerTubeCatalogParser(
         return results.values.toList()
     }
 
-    private fun extractArtwork(renderer: JSONObject): CatalogArtwork? {
+    private fun extractArtwork(
+        renderer: JSONObject
+    ): CatalogArtwork? {
         val candidates = mutableListOf<CatalogArtwork>()
 
         fun visit(node: Any?) {
             when (node) {
                 is JSONObject -> {
                     val thumbnails = node.optJSONArray("thumbnails")
+
                     if (thumbnails != null) {
                         for (index in 0 until thumbnails.length()) {
                             val thumb = thumbnails.optJSONObject(index)
@@ -407,6 +431,7 @@ class InnerTubeCatalogParser(
 
                             val width = thumb.optInt("width", 0)
                                 .takeIf { it > 0 }
+
                             val height = thumb.optInt("height", 0)
                                 .takeIf { it > 0 }
 
@@ -494,10 +519,12 @@ class InnerTubeCatalogParser(
             is JSONObject -> {
                 val command = value.optJSONObject("continuationCommand")
                     ?.stringValue("token")
+
                 if (!command.isNullOrBlank()) return command
 
                 val nextData = value.optJSONObject("nextContinuationData")
                     ?.stringValue("continuation")
+
                 if (!nextData.isNullOrBlank()) return nextData
 
                 val keys = value.keys()
@@ -525,6 +552,7 @@ class InnerTubeCatalogParser(
         when (value) {
             is JSONObject -> {
                 val keys = value.keys()
+
                 while (keys.hasNext()) {
                     val key = keys.next()
                     val child = value.opt(key)
@@ -578,6 +606,7 @@ class InnerTubeCatalogParser(
 
     private fun looksLikeTrackMetadata(value: String): Boolean {
         val normalized = value.trim().lowercase()
+
         return normalized in setOf(
             "song",
             "video",
@@ -612,6 +641,7 @@ class InnerTubeCatalogParser(
 
         private const val RESPONSIVE_TRACK_RENDERER =
             "musicResponsiveListItemRenderer"
+
         private const val TWO_ROW_RENDERER =
             "musicTwoRowItemRenderer"
 
@@ -623,6 +653,7 @@ class InnerTubeCatalogParser(
         private val YEAR_REGEX = Regex("""\b(?:19|20)\d{2}\b""")
         private val WHITESPACE_REGEX = Regex("""\s+""")
         private val METADATA_SEPARATOR_REGEX = Regex("""\s*[•·|]\s*""")
+
         private val DURATION_REGEX =
             Regex("""(?:(\d+):)?([0-5]?\d):([0-5]\d)""")
     }

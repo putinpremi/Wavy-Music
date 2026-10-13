@@ -312,7 +312,7 @@ private fun CatalogResultCard(
 
         CatalogSearchItemType.ARTIST -> Icons.Filled.Person
         CatalogSearchItemType.ALBUM -> Icons.Filled.Album
-        CatalogSearchItemType.PLAYLIST -> "Public playlist · open details"
+        CatalogSearchItemType.PLAYLIST -> Icons.Filled.LibraryMusic
     }
 
     // A catalog track does not contain a verified playable source in this
@@ -399,7 +399,7 @@ private fun CatalogResultCard(
                             "Album · open details"
 
                         CatalogSearchItemType.PLAYLIST ->
-                            "Playlist · detail screen not connected yet"
+                            "Public playlist · open details"
 
                         CatalogSearchItemType.UNKNOWN ->
                             "Catalog item · type not recognized"

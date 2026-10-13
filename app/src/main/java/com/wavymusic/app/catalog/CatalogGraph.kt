@@ -1,14 +1,17 @@
+
 package com.wavymusic.app.catalog
 
 import android.content.Context
 import com.wavymusic.app.catalog.provider.MusicCatalogProvider
+import com.wavymusic.app.catalog.provider.itunes.HttpITunesCatalogTransport
+import com.wavymusic.app.catalog.provider.itunes.ITunesCatalogProvider
 import com.wavymusic.app.catalog.storage.WavyCatalogDatabase
 
 /**
  * Application-level access point for catalog search.
  *
- * Add a reviewed, permitted MusicCatalogProvider to registeredProviders
- * only when a real transport implementation is available.
+ * The registered provider returns catalog metadata only. Search results
+ * do not automatically become playable sources.
  */
 object CatalogGraph {
 
@@ -23,10 +26,14 @@ object CatalogGraph {
         }
     }
 
-    private fun createDataSource(context: Context): CatalogSearchDataSource {
-        // The repository currently has an adapter and parser, but no
-        // concrete, permitted network transport is registered.
-        val registeredProviders: List<MusicCatalogProvider> = emptyList()
+    private fun createDataSource(
+        context: Context
+    ): CatalogSearchDataSource {
+        val registeredProviders: List<MusicCatalogProvider> = listOf(
+            ITunesCatalogProvider(
+                transport = HttpITunesCatalogTransport()
+            )
+        )
 
         val repository = CatalogRepository(
             providers = registeredProviders,

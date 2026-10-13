@@ -1,4 +1,3 @@
-
 package com.wavymusic.app.ui
 
 import android.content.Context
@@ -7,16 +6,15 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wavymusic.app.catalog.model.CatalogAlbum
 import com.wavymusic.app.catalog.model.CatalogArtist
+import com.wavymusic.app.catalog.model.CatalogPlaylist
 import com.wavymusic.app.ui.theme.WavyColors
 
 @Composable
@@ -96,17 +95,15 @@ fun CatalogDetailScreen(
             }
 
             is CatalogDetailUiState.ArtistLoaded -> {
-                ArtistDetails(
-                    artist = state.artist,
-                    context = context
-                )
+                ArtistDetails(state.artist, context)
             }
 
             is CatalogDetailUiState.AlbumLoaded -> {
-                AlbumDetails(
-                    album = state.album,
-                    context = context
-                )
+                AlbumDetails(state.album, context)
+            }
+
+            is CatalogDetailUiState.PlaylistLoaded -> {
+                PlaylistDetails(state.playlist, context)
             }
         }
     }
@@ -216,6 +213,65 @@ private fun AlbumDetails(
 
         CatalogLinkButton(
             url = album.sources.firstNotNullOfOrNull {
+                it.catalogUri?.takeIf(String::isNotBlank)
+            },
+            context = context
+        )
+    }
+}
+
+@Composable
+private fun PlaylistDetails(
+    playlist: CatalogPlaylist,
+    context: Context
+) {
+    DetailCard(title = playlist.title) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(
+                imageVector = Icons.Filled.LibraryMusic,
+                contentDescription = null,
+                tint = WavyColors.Cyan
+            )
+            Text(
+                text = "Public playlist",
+                modifier = Modifier.padding(start = 10.dp),
+                color = WavyColors.SecondaryText
+            )
+        }
+
+        playlist.ownerName?.takeIf { it.isNotBlank() }?.let {
+            DetailFact(label = "Owner", value = it)
+        }
+
+        playlist.description?.takeIf { it.isNotBlank() }?.let {
+            DetailFact(label = "Description", value = it)
+        }
+
+        playlist.entryCount?.let {
+            DetailFact(label = "Tracks", value = it.toString())
+        }
+
+        DetailFact(
+            label = "Visibility",
+            value = if (playlist.isPublic) "Public" else "Not confirmed public"
+        )
+
+        if (!playlist.isSearchablePublicly) {
+            Text(
+                text = "This playlist is not verified as publicly searchable.",
+                color = WavyColors.SecondaryText,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Text(
+            text = "Playlist metadata only. Track playback is not verified.",
+            color = WavyColors.SecondaryText,
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        CatalogLinkButton(
+            url = playlist.sources.firstNotNullOfOrNull {
                 it.catalogUri?.takeIf(String::isNotBlank)
             },
             context = context

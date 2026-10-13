@@ -83,10 +83,12 @@ internal object WavyRoutes {
     const val DOWNLOADS = "downloads"
     const val ARTIST = "artist"
     const val ALBUM = "album"
+    const val PLAYLIST = "playlist"
 
     val all = listOf(
         HOME, SEARCH, LIBRARY, SETTINGS,
-        NOW_PLAYING, QUEUE, LYRICS, DOWNLOADS, ARTIST, ALBUM
+        NOW_PLAYING, QUEUE, LYRICS, DOWNLOADS,
+        ARTIST, ALBUM, PLAYLIST
     )
 }
 
@@ -263,6 +265,9 @@ private fun WavyNavHost(
                         com.wavymusic.app.catalog.CatalogSearchItemType.ALBUM ->
                             WavyRoutes.ALBUM
 
+                        com.wavymusic.app.catalog.CatalogSearchItemType.PLAYLIST ->
+                            WavyRoutes.PLAYLIST
+
                         else -> null
                     }
 
@@ -392,6 +397,41 @@ private fun WavyNavHost(
                 factory = CatalogDetailViewModelFactory(
                     repository = detailRepository,
                     kind = CatalogDetailKind.ALBUM,
+                    catalogItemId = itemId
+                )
+            )
+
+            val state by vm.uiState.collectAsStateWithLifecycle()
+
+            CatalogDetailScreen(
+                state = state,
+                fallbackTitle = title,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(WavyRoutes.PLAYLIST) {
+            val selected = navController.previousBackStackEntry
+                ?.takeIf { it.destination.route == WavyRoutes.SEARCH }
+                ?.savedStateHandle
+
+            val title = selected?.get<String>("catalog.detail.title")
+            val itemId = selected?.get<String>("catalog.detail.id")
+
+            val context = LocalContext.current
+            val detailRepository = remember(context.applicationContext) {
+                CatalogDetailRepository(
+                    WavyCatalogDatabase
+                        .getInstance(context.applicationContext)
+                        .catalogDao()
+                )
+            }
+
+            val vm: CatalogDetailViewModel = viewModel(
+                key = "catalog-playlist:${itemId ?: "missing"}",
+                factory = CatalogDetailViewModelFactory(
+                    repository = detailRepository,
+                    kind = CatalogDetailKind.PLAYLIST,
                     catalogItemId = itemId
                 )
             )

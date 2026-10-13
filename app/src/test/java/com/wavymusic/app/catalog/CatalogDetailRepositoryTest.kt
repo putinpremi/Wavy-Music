@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import com.wavymusic.app.catalog.storage.CatalogPlaylistEntity
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -160,6 +161,64 @@ class CatalogDetailRepositoryTest {
         assertEquals(
             "https://itunes.apple.com/us/album/nova-album/789",
             album?.sources?.single()?.catalogUri
+        )
+    }
+
+    @Test
+    fun loadsPublicPlaylistWithProviderIdentityAndCatalogLink() = runBlocking {
+        val dao = database.catalogDao()
+        val id = "deezer-public:playlist:999"
+
+        dao.upsertPlaylist(
+            CatalogPlaylistEntity(
+                id = id,
+                title = "Nova Mix",
+                ownerName = "Curator",
+                description = "A fixture playlist",
+                isPublic = true,
+                isSearchablePublicly = true,
+                entryCount = 30
+            )
+        )
+
+        dao.upsertProviderIdentities(
+            listOf(
+                CatalogProviderIdentityEntity(
+                    ownerType = CatalogOwnerType.PLAYLIST,
+                    ownerId = id,
+                    providerId = "deezer-public",
+                    providerItemId = "999"
+                )
+            )
+        )
+
+        dao.upsertSourceDescriptors(
+            listOf(
+                CatalogSourceDescriptorEntity(
+                    ownerType = CatalogOwnerType.PLAYLIST,
+                    ownerId = id,
+                    id = "playlist-source",
+                    providerId = "deezer-public",
+                    providerItemId = "999",
+                    kind = "PLAYLIST",
+                    catalogUri = "https://www.deezer.com/playlist/999"
+                )
+            )
+        )
+
+        val playlist = repository.playlist(id)
+
+        assertNotNull(playlist)
+        assertEquals("Nova Mix", playlist?.title)
+        assertEquals("Curator", playlist?.ownerName)
+        assertEquals("A fixture playlist", playlist?.description)
+        assertEquals(30, playlist?.entryCount)
+        assertEquals(true, playlist?.isPublic)
+        assertEquals(true, playlist?.isSearchablePublicly)
+        assertEquals("999", playlist?.providerIds?.single()?.itemId)
+        assertEquals(
+            "https://www.deezer.com/playlist/999",
+            playlist?.sources?.single()?.catalogUri
         )
     }
 

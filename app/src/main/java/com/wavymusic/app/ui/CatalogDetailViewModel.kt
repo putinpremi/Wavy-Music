@@ -1,4 +1,3 @@
-
 package com.wavymusic.app.ui
 
 import androidx.lifecycle.ViewModel
@@ -7,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.wavymusic.app.catalog.CatalogDetailRepository
 import com.wavymusic.app.catalog.model.CatalogAlbum
 import com.wavymusic.app.catalog.model.CatalogArtist
+import com.wavymusic.app.catalog.model.CatalogPlaylist
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 
 enum class CatalogDetailKind {
     ARTIST,
-    ALBUM
+    ALBUM,
+    PLAYLIST
 }
 
 sealed interface CatalogDetailUiState {
@@ -28,6 +29,10 @@ sealed interface CatalogDetailUiState {
 
     data class AlbumLoaded(
         val album: CatalogAlbum
+    ) : CatalogDetailUiState
+
+    data class PlaylistLoaded(
+        val playlist: CatalogPlaylist
     ) : CatalogDetailUiState
 
     data class Error(
@@ -71,6 +76,11 @@ class CatalogDetailViewModel(
                     CatalogDetailKind.ALBUM ->
                         repository.album(id)?.let {
                             CatalogDetailUiState.AlbumLoaded(it)
+                        }
+
+                    CatalogDetailKind.PLAYLIST ->
+                        repository.playlist(id)?.let {
+                            CatalogDetailUiState.PlaylistLoaded(it)
                         }
                 }
 

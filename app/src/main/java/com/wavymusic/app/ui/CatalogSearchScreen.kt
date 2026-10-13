@@ -312,7 +312,7 @@ private fun CatalogResultCard(
 
         CatalogSearchItemType.ARTIST -> Icons.Filled.Person
         CatalogSearchItemType.ALBUM -> Icons.Filled.Album
-        CatalogSearchItemType.PLAYLIST -> Icons.Filled.LibraryMusic
+        CatalogSearchItemType.PLAYLIST -> "Public playlist · open details"
     }
 
     // A catalog track does not contain a verified playable source in this
@@ -320,7 +320,8 @@ private fun CatalogResultCard(
     // destinations connected by this phase.
     val canOpenDetails =
         hit.itemType == CatalogSearchItemType.ARTIST ||
-            hit.itemType == CatalogSearchItemType.ALBUM
+            hit.itemType == CatalogSearchItemType.ALBUM ||
+            hit.itemType == CatalogSearchItemType.PLAYLIST
     
     val sourceLabel = when (hit.providerId) {
         "itunes-search" -> "Apple iTunes"

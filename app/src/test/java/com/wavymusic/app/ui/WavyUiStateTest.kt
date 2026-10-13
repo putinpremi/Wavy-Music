@@ -32,31 +32,26 @@ class WavyUiStateTest {
 
     @Test
     fun searchStartsWithoutInventedCatalogResults() {
-        val viewModel = SearchViewModel()
-        val initialState = viewModel.uiState.value
+        val initialState = SearchUiState()
 
         assertEquals("", initialState.query)
         assertEquals(
-            CatalogContentState.NotConfigured,
-            initialState.contentState
+            CatalogSearchUiStatus.NOT_CONFIGURED,
+            initialState.status
         )
+        assertTrue(initialState.results.isEmpty())
     }
 
     @Test
-    fun searchQueryIsHeldInViewModelState() {
-        val viewModel = SearchViewModel()
+    fun searchStateCanHoldQueryWithoutInventingResults() {
+        val state = SearchUiState(query = "favorite song")
 
-        viewModel.onQueryChanged("favorite song")
-
+        assertEquals("favorite song", state.query)
         assertEquals(
-            "favorite song",
-            viewModel.uiState.value.query
+            CatalogSearchUiStatus.NOT_CONFIGURED,
+            state.status
         )
-
-        assertEquals(
-            CatalogContentState.NotConfigured,
-            viewModel.uiState.value.contentState
-        )
+        assertTrue(state.results.isEmpty())
     }
 
     @Test

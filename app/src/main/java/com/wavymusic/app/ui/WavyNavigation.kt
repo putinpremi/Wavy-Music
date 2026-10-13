@@ -66,6 +66,8 @@ import com.wavymusic.app.playback.PlaybackViewModel
 import com.wavymusic.app.ui.theme.WavyColors
 import com.wavymusic.app.ui.theme.WavyTheme
 import com.wavymusic.app.ui.theme.WavyWaveMark
+import androidx.compose.ui.platform.LocalContext
+import com.wavymusic.app.catalog.CatalogGraph
 
 internal object WavyRoutes {
     const val HOME = "home"
@@ -235,9 +237,45 @@ private fun WavyNavHost(
         }
 
         composable(WavyRoutes.SEARCH) {
-            val vm: SearchViewModel = viewModel()
+            val dataSource = CatalogGraph.searchDataSource(LocalContext.current)
+
+            val vm: SearchViewModel = viewModel(
+                factory = SearchViewModelFactory(dataSource)
+            )
+
             val state by vm.uiState.collectAsStateWithLifecycle()
-            SearchScreen(state, vm::onQueryChanged)
+
+            CatalogSearchScreen(
+                state = state,
+                onQueryChanged = vm::onQueryChanged,
+                onSearchTypeChanged = vm::onSearchTypeChanged,
+                onRecentSearchSelected = vm::onRecentSearchSelected,
+                onClearRecentSearches = vm::clearRecentSearches,
+                onLoadMore = vm::loadMore,
+                onOpenResult = { hit ->
+                    val route = when (hit.itemType) {
+                        com.wavymusic.app.catalog.CatalogSearchItemType.ARTIST ->
+                            WavyRoutes.ARTIST
+
+                        com.wavymusic.app.catalog.CatalogSearchItemType.ALBUM ->
+                            WavyRoutes.ALBUM
+
+                        else -> null
+                    }
+
+                    if (route != null) {
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.apply {
+                                set("catalog.detail.title", hit.title)
+                                set("catalog.detail.id", hit.itemId)
+                                set("catalog.detail.provider", hit.providerId)
+                            }
+
+                        onNavigate(route)
+                    }
+                }
+            )
         }
 
         composable(WavyRoutes.LIBRARY) {
@@ -295,18 +333,44 @@ private fun WavyNavHost(
         }
 
         composable(WavyRoutes.ARTIST) {
+            val selected = navController.previousBackStackEntry
+                ?.takeIf { it.destination.route == WavyRoutes.SEARCH }
+                ?.savedStateHandle
+
+            val title = selected?.get<String>("catalog.detail.title")
+            val itemId = selected?.get<String>("catalog.detail.id")
+            val provider = selected?.get<String>("catalog.detail.provider")
+
             DestinationEmptyScreen(
                 icon = Icons.Filled.Person,
-                title = "Artist details",
-                description = "Artist information will appear when a real catalog is connected."
+                title = title ?: "Artist details",
+                description = if (!itemId.isNullOrBlank()) {
+                    "Catalog result from ${provider ?: "unknown provider"} " +
+                        "(ID: $itemId). Full artist metadata is not loaded yet."
+                } else {
+                    "Artist information will appear when a real catalog is connected."
+                }
             )
         }
 
         composable(WavyRoutes.ALBUM) {
+            val selected = navController.previousBackStackEntry
+                ?.takeIf { it.destination.route == WavyRoutes.SEARCH }
+                ?.savedStateHandle
+
+            val title = selected?.get<String>("catalog.detail.title")
+            val itemId = selected?.get<String>("catalog.detail.id")
+            val provider = selected?.get<String>("catalog.detail.provider")
+
             DestinationEmptyScreen(
                 icon = Icons.Filled.Album,
-                title = "Album details",
-                description = "Album information will come from real catalogue results."
+                title = title ?: "Album details",
+                description = if (!itemId.isNullOrBlank()) {
+                    "Catalog result from ${provider ?: "unknown provider"} " +
+                        "(ID: $itemId). Full album metadata is not loaded yet."
+                } else {
+                    "Album information will come from real catalog results."
+                }
             )
         }
     }
@@ -413,45 +477,6 @@ private fun HomeScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SearchScreen(
-    state: SearchUiState,
-    onQueryChanged: (String) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        SectionHeading(
-            "Search",
-            "Find songs, artists, and albums."
-        )
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = onQueryChanged,
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            label = { Text("Search music") },
-            placeholder = { Text("Songs, artists, albums") },
-            leadingIcon = {
-                Icon(Icons.Filled.Search, contentDescription = null)
-            },
-            shape = RoundedCornerShape(18.dp)
-        )
-        CatalogStatePanel(
-            state.contentState,
-            descriptionOverride = if (state.query.isNotBlank()) {
-                "Your search has not been sent anywhere. A music source is not configured."
-            } else {
-                null
-            }
-        )
     }
 }
 

@@ -68,6 +68,9 @@ import com.wavymusic.app.ui.theme.WavyTheme
 import com.wavymusic.app.ui.theme.WavyWaveMark
 import androidx.compose.ui.platform.LocalContext
 import com.wavymusic.app.catalog.CatalogGraph
+import androidx.compose.runtime.remember
+import com.wavymusic.app.catalog.CatalogDetailRepository
+import com.wavymusic.app.catalog.storage.WavyCatalogDatabase
 
 internal object WavyRoutes {
     const val HOME = "home"
@@ -339,17 +342,31 @@ private fun WavyNavHost(
 
             val title = selected?.get<String>("catalog.detail.title")
             val itemId = selected?.get<String>("catalog.detail.id")
-            val provider = selected?.get<String>("catalog.detail.provider")
 
-            DestinationEmptyScreen(
-                icon = Icons.Filled.Person,
-                title = title ?: "Artist details",
-                description = if (!itemId.isNullOrBlank()) {
-                    "Catalog result from ${provider ?: "unknown provider"} " +
-                        "(ID: $itemId). Full artist metadata is not loaded yet."
-                } else {
-                    "Artist information will appear when a real catalog is connected."
-                }
+            val context = LocalContext.current
+            val detailRepository = remember(context.applicationContext) {
+                CatalogDetailRepository(
+                    WavyCatalogDatabase
+                        .getInstance(context.applicationContext)
+                        .catalogDao()
+                )
+            }
+
+            val vm: CatalogDetailViewModel = viewModel(
+                key = "catalog-artist:${itemId ?: "missing"}",
+                factory = CatalogDetailViewModelFactory(
+                    repository = detailRepository,
+                    kind = CatalogDetailKind.ARTIST,
+                    catalogItemId = itemId
+                )
+            )
+
+            val state by vm.uiState.collectAsStateWithLifecycle()
+
+            CatalogDetailScreen(
+                state = state,
+                fallbackTitle = title,
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -360,17 +377,31 @@ private fun WavyNavHost(
 
             val title = selected?.get<String>("catalog.detail.title")
             val itemId = selected?.get<String>("catalog.detail.id")
-            val provider = selected?.get<String>("catalog.detail.provider")
 
-            DestinationEmptyScreen(
-                icon = Icons.Filled.Album,
-                title = title ?: "Album details",
-                description = if (!itemId.isNullOrBlank()) {
-                    "Catalog result from ${provider ?: "unknown provider"} " +
-                        "(ID: $itemId). Full album metadata is not loaded yet."
-                } else {
-                    "Album information will come from real catalog results."
-                }
+            val context = LocalContext.current
+            val detailRepository = remember(context.applicationContext) {
+                CatalogDetailRepository(
+                    WavyCatalogDatabase
+                        .getInstance(context.applicationContext)
+                        .catalogDao()
+                )
+            }
+
+            val vm: CatalogDetailViewModel = viewModel(
+                key = "catalog-album:${itemId ?: "missing"}",
+                factory = CatalogDetailViewModelFactory(
+                    repository = detailRepository,
+                    kind = CatalogDetailKind.ALBUM,
+                    catalogItemId = itemId
+                )
+            )
+
+            val state by vm.uiState.collectAsStateWithLifecycle()
+
+            CatalogDetailScreen(
+                state = state,
+                fallbackTitle = title,
+                onBack = { navController.popBackStack() }
             )
         }
     }
